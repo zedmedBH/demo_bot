@@ -1,5 +1,7 @@
 #include "main.h"
 
+ASSET(path_txt);//means path.txt
+
 // --- Motors ---
 // Standard PROS motor groups. (Negative ports reverse the motor)
 MotorGroup leftMotors({1, 9});
@@ -27,6 +29,7 @@ OdomSensors sensors(nullptr, // vertical tracking wheel 1
 
 // --- PID Controllers ---
 // Placeholder values - you will need to tune these!
+//ControllerSettings(kP,kI,kD, windup, smallError, smallErrorTime, largeError, largeErrorTime, slew);
 ControllerSettings lateral_controller(10, 0, 3, 3, 1, 100, 3, 500, 20);
 ControllerSettings angular_controller(2, 0, 10, 3, 1, 100, 3, 500, 0);
 
@@ -73,6 +76,20 @@ void competition_initialize() {}
 
 void autonomous() {}
 
+void follow_path(){
+    // 1. Set Start Position
+    // The X, Y, and Heading must exactly match the start of your JerryIO path!
+    chassis.setPose(0, 0, 0); 
+
+    // 2. Follow the Path
+    // Parameters: (Asset Name, Lookahead Distance, Timeout in milliseconds)
+    chassis.follow(path_txt, 15, 4000); 
+
+    // 3. Wait for Completion
+    // This prevents the robot from skipping to the next line of code before it finishes driving.
+    chassis.waitUntilDone();
+}
+
 /**
  * Runs the operator control code.
  */
@@ -100,11 +117,10 @@ void opcontrol() {
 
         chassis.curvature(throttle, turn);
 
-        // --- Metric Movement Test (~30cm) ---
+        // --- Follow Predefined Path ---
         if (master.get_digital_new_press(DIGITAL_X)) {
-            chassis.setPose(0, 0, 0);
-            chassis.moveToPoint(0, 11.81, 2000);
-            chassis.waitUntilDone();
+            //follow_path();
+            chassis.moveToPoint(0,24,2000);
         }
 
         //Intake Control
