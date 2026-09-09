@@ -11,6 +11,8 @@ MotorGroup intakeMotors({8,-3});
 Motor intakeLiftMotor(-5);
 Motor trayLiftMotor(7);
 
+pros::AIVision ai_sensor(10);
+
 // --- Drivetrain Configuration ---
 Drivetrain drivetrain(&leftMotors, // left motor group
                       &rightMotors, // right motor group
@@ -36,6 +38,57 @@ ControllerSettings angular_controller(2, 0, 10, 3, 1, 100, 3, 500, 0);
 // --- Initialize Chassis ---
 Chassis chassis(drivetrain, lateral_controller, angular_controller, sensors);
 
+void vision_task() {
+    // 1. Enable the sensor to look for AprilTags
+    ai_sensor.enable_detection_types(pros::AivisionModeType::tags);
+    
+    // 2. Set the specific tag family used on the VEX field
+    ai_sensor.set_tag_family(pros::AivisionTagFamily::tag_21H7); 
+    
+    // Calibration Constant (K)
+    // Tune this: Place robot exactly 24 inches from the tag. 
+    // If the pixel width reads 50, your constant is 24 * 50 = 1200.
+    double DISTANCE_CONSTANT = 1200.0; 
+
+    while (true) {
+        auto objects = ai_sensor.get_all_objects();
+        bool tag_found = false;
+
+        for (auto& object : objects) {
+            
+            if (pros::AIVision::is_type(object, pros::AivisionDetectType::tag)) {
+                
+                // Pull variables from the nested element struct
+                double tag_width = object.object.element.width;
+                double tag_x = object.object.element.xoffset;
+                
+                // Calculate distance based on pixel width
+                double actual_distance = DISTANCE_CONSTANT / tag_width;
+                
+                // Calculate how far off-center the tag is (320px total width, 160 is center)
+                double center_x = tag_x + (tag_width / 2.0);
+                double offset_x = center_x - 160.0; 
+
+                // Print ID on Line 3
+                pros::lcd::print(3, "Tag ID: %d Detected!      ", object.id);
+                
+                // Print Calculated Distance and Pixel Offset on Line 4
+                pros::lcd::print(4, "Dist: %.1f | Off: %.0f px  ", actual_distance, offset_x);
+                
+                tag_found = true;
+                break; 
+            }
+        }
+        
+        // Clear lines if nothing is seen
+        if (!tag_found) {
+            pros::lcd::print(3, "Scanning for tags...      ");
+            pros::lcd::print(4, "                          "); 
+        }
+        
+        pros::delay(50); 
+    }
+}
 
 /**
  * A callback function for LLEMU's center button.
@@ -67,7 +120,8 @@ void initialize() {
     trayLiftMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
     // Calibrate the chassis (calibrates the IMU and starts odometry)
-    chassis.calibrate(); 
+    chassis.calibrate();
+    pros::Task vision_test(vision_task);
 }
 
 void disabled() {}
