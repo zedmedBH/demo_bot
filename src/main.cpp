@@ -86,7 +86,7 @@ void initialize() {
     for (int i = 1; i <= 5; i++) {
         auto name = ai_sensor.get_class_name(i);
         if (name.has_value()) {
-            printf("Class ID %d is: %s\n", i, name.value().c_str());
+            pros::lcd::print(i + 1, "ID %d: %s", i, name.value().c_str());
         }
     }
 }
