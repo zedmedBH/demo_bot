@@ -50,12 +50,12 @@ void process_apriltag(int tag_id, double pixel_error, double distance_inches) {
 // Called when in AI Object Mode
 void process_ai_object(int class_id, double pixel_error) {
     // 1 = Red Ring, 2 = Blue Ring, 3 = Mobile Goal
-    if (class_id == 1) {
+    if (class_id == 5) {
         pros::lcd::print(5, "AI: Chasing RED Ring!         ");
-    } else if (class_id == 2) {
-        pros::lcd::print(5, "AI: Avoiding BLUE Ring!       ");
     } else if (class_id == 3) {
-        pros::lcd::print(5, "AI: Aligning to Mobile Goal!  ");
+        pros::lcd::print(5, "AI: Avoiding BLUE Ring!       ");
+    } else if (class_id == 1) {
+        pros::lcd::print(5, "AI: Green Ball ");
     } else {
         pros::lcd::print(5, "AI: Unknown Object ID: %d     ", class_id);
     }
