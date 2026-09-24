@@ -39,7 +39,8 @@ void process_apriltag(int tag_id, double pixel_error, double distance_inches) {
             
         } else {
             pros::lcd::print(5, "Tag 1: Arrived at Red Station!");
-            chassis.brake();
+            leftMotors.brake();
+            rightMotors.brake();
         }
     } else {
         pros::lcd::print(5, "Unknown Tag: %d               ", tag_id);
@@ -77,7 +78,17 @@ void initialize() {
     
     chassis.calibrate();
     
-    // Note: We removed the pros::Task vision_test(vision_task) from here!
+    pros::delay(500); 
+
+    printf("--- AI Vision Loaded Classes ---\n");
+    
+    // Loop through the first 5 potential IDs to see what the sensor is trained on
+    for (int i = 1; i <= 5; i++) {
+        auto name = ai_sensor.get_class_name(i);
+        if (name.has_value()) {
+            printf("Class ID %d is: %s\n", i, name.value().c_str());
+        }
+    }
 }
 
 void disabled() {}
