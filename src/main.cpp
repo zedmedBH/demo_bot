@@ -8,7 +8,7 @@ MotorGroup rightMotors({-2, -10});
 MotorGroup intakeMotors({8,-3});
 Motor intakeLiftMotor(-5);
 Motor trayLiftMotor(7);
-pros::AIVision ai_sensor(10); 
+pros::AIVision ai_sensor(21); 
 
 // --- Drivetrain Configuration ---
 Drivetrain drivetrain(&leftMotors, &rightMotors, 12.0, Omniwheel::NEW_4, 200, 2); 
