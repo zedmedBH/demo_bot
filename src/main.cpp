@@ -24,6 +24,9 @@ Chassis chassis(drivetrain, lateral_controller, angular_controller, sensors);
 
 // Called when in AprilTag Mode
 void process_apriltag(int tag_id, double pixel_error, double distance_inches) {
+    // Clears the entire PROS LCD screen
+    pros::lcd::clear();
+    pros::lcd::print(1, "April Tag Mode");
     if (tag_id == 1) { // Example: Tag 1 is the Red Station
         if (distance_inches > 15.0) {
             pros::lcd::print(5, "Tag 1: Driving to Red Station ");
@@ -49,6 +52,9 @@ void process_apriltag(int tag_id, double pixel_error, double distance_inches) {
 
 // Called when in AI Object Mode
 void process_ai_object(int class_id, double pixel_error) {
+    // Clears the entire PROS LCD screen
+    pros::lcd::clear();
+    
     // 1 = Red Ring, 2 = Blue Ring, 3 = Mobile Goal
     if (class_id == 5) {
         pros::lcd::print(5, "AI: Chasing RED Ring!         ");
