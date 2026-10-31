@@ -9,17 +9,6 @@ MotorGroup intakeMotors({8,-3});
 Motor intakeLiftMotor(-5);
 Motor trayLiftMotor(7);
 
-AIVision ai_vision(20);
-
-AIVision::Color color_purple = {
-    .id = 1,
-    .red = 50,
-    .green = 17,
-    .blue = 98,
-    .hue_range = 22.0,
-    .saturation_range = 0.67
-};
-
 // --- Drivetrain Configuration ---
 Drivetrain drivetrain(&leftMotors, // left motor group
                       &rightMotors, // right motor group
@@ -27,6 +16,7 @@ Drivetrain drivetrain(&leftMotors, // left motor group
                       Omniwheel::NEW_4, // using new 4" omnis
                       200, // drivetrain rpm
                       2); // horizontal drift (2 is standard for normal drive)
+
 
 // --- Odometry Sensors ---
 Imu imu(17); 
@@ -44,6 +34,7 @@ ControllerSettings angular_controller(2, 0, 10, 3, 1, 100, 3, 500, 0);
 // --- Initialize Chassis ---
 Chassis chassis(drivetrain, lateral_controller, angular_controller, sensors);
 
+AIVision ai_vision(20);
 
 /**
  * A callback function for LLEMU's center button.
@@ -76,10 +67,8 @@ void initialize() {
 
     // Calibrate the chassis (calibrates the IMU and starts odometry)
     chassis.calibrate();
-
-    ai_vision.set_color(color_purple);
-
-    ai_vision.enable_detection_types(pros::AivisionModeType::colors);
+    
+    ai_vision.enable_detection_types(pros::AivisionModeType::tags);
 
 }
 
@@ -110,31 +99,42 @@ void opcontrol() {
 
     while (true) {
 
-         auto objects = ai_vision.get_all_objects();
-         bool found_purple = false;
+        auto objects  = ai_vision.get_all_objects();
 
-         for (auto &obj : objects){
-            if(obj.id == 1){
-                pros::lcd::print(1, "ID:%d X:%d Y:%d W:%d H:%d",
+        if (objects.size() == 0){
+            pros::lcd::set_text(1, "No AprilTags detected!");
+        } else {
+            for (auto &obj : objects){
+                // Using counter-clockwise mapping
+                double x0 = obj.object.tag.x0; // Bottom-left
+                double y0 = obj.object.tag.y0; 
+                double x1 = obj.object.tag.x1; // Bottom-right
+                double y1 = obj.object.tag.y1;
+                double x3 = obj.object.tag.x3; // Top-left
+                double y3 = obj.object.tag.y3;
+                
+                // Width: Euclidean distance between bottom-left (0) and bottom-right (1)
+                double width = std::sqrt(std::pow(x1 - x0, 2) + std::pow(y1 - y0, 2));
+                
+                // Height: Euclidean distance between bottom-left (0) and top-left (3)
+                double height = std::sqrt(std::pow(x3 - x0, 2) + std::pow(y3 - y0, 2));
+                
+                // Angle: Slope of the bottom edge (0 to 1)
+                double angle = std::atan2(y1 - y0, x1 - x0) * 180.0 / M_PI;
+
+                pros::lcd::print(1, "ID:%d X:%.1f Y:%.1f W:%.1f H:%.1f A:%.1f",
                     obj.id,
-                    obj.object.color.xoffset,
-                    obj.object.color.yoffset,
-                    obj.object.color.width,
-                    obj.object.color.height
+                    x3,
+                    y3,
+                    width,
+                    height,
+                    angle
                 );
-
-                found_purple = true;
-                break;
             }
-         }
-
-         if (!found_purple){
-            pros::lcd::set_text(1,"No purple cube detected!");
-         }
-
+        }
 
         // --- Manual Drive Logic ---
- /*       int throttle = master.get_analog(ANALOG_LEFT_Y);
+/*        int throttle = master.get_analog(ANALOG_LEFT_Y);
         int turn = master.get_analog(ANALOG_RIGHT_X);
 
         chassis.curvature(throttle, turn);
@@ -175,8 +175,8 @@ void opcontrol() {
             trayLiftMotor.move(-TRAY_IN_SPEED);
         }else{
             trayLiftMotor.brake();
-        }*/
-
+        }
+*/
         delay(100); 
     }
 }

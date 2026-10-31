@@ -17,6 +17,7 @@ Drivetrain drivetrain(&leftMotors, // left motor group
                       200, // drivetrain rpm
                       2); // horizontal drift (2 is standard for normal drive)
 
+
 // --- Odometry Sensors ---
 Imu imu(17); 
 OdomSensors sensors(nullptr, // vertical tracking wheel 1
@@ -32,7 +33,6 @@ ControllerSettings angular_controller(2, 0, 10, 3, 1, 100, 3, 500, 0);
 
 // --- Initialize Chassis ---
 Chassis chassis(drivetrain, lateral_controller, angular_controller, sensors);
-
 
 /**
  * A callback function for LLEMU's center button.
@@ -64,7 +64,8 @@ void initialize() {
     trayLiftMotor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
     // Calibrate the chassis (calibrates the IMU and starts odometry)
-    chassis.calibrate(); 
+    chassis.calibrate();
+
 }
 
 void disabled() {}
