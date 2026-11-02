@@ -125,6 +125,23 @@ void opcontrol() {
             }
         }
 
+        if (master.get_digital(DIGITAL_LEFT) && found_tag){
+            double error = CENTER_FOV_X - target_x;
+            int turn_speed = 0;
+
+            //center the tag with 15 pixels
+            if (std::abs(error) > 15){
+                turn_speed = error * kP;
+            }
+
+            chassis.arcade(0,-turn_speed);
+        } else {
+            int throttle = master.get_analog(ANALOG_LEFT_Y);
+            int turn = master.get_analog(ANALOG_RIGHT_X);
+
+            chassis.arcade(throttle,turn);
+        }
+
         // --- Manual Drive Logic ---
 /*        int throttle = master.get_analog(ANALOG_LEFT_Y);
         int turn = master.get_analog(ANALOG_RIGHT_X);

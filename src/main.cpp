@@ -34,7 +34,7 @@ ControllerSettings angular_controller(2, 0, 10, 3, 1, 100, 3, 500, 0);
 // --- Initialize Chassis ---
 Chassis chassis(drivetrain, lateral_controller, angular_controller, sensors);
 
-AIVision ai_vision(20);
+AIVision ai_vision(21);
 
 /**
  * A callback function for LLEMU's center button.
@@ -123,6 +123,23 @@ void opcontrol() {
                 found_tag = true;
                 break;
             }
+        }
+
+        if (master.get_digital(DIGITAL_LEFT) && found_tag){
+            double error = CENTER_FOV_X - target_x;
+            int turn_speed = 0;
+
+            //center the tag with 15 pixels
+            if (std::abs(error) > 15){
+                turn_speed = error * kP;
+            }
+
+            chassis.arcade(0,-turn_speed);
+        } else {
+            int throttle = master.get_analog(ANALOG_LEFT_Y);
+            int turn = master.get_analog(ANALOG_RIGHT_X);
+
+            chassis.arcade(throttle,turn);
         }
 
         // --- Manual Drive Logic ---

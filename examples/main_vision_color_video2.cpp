@@ -146,7 +146,7 @@ void opcontrol() {
                 turn_speed = error * kP;
             }
 
-            chassis.arcade(0,turn_speed);
+            chassis.arcade(0,-turn_speed);
          } else{
             int throttle = master.get_analog(ANALOG_LEFT_Y);
             int turn = master.get_analog(ANALOG_RIGHT_X);
