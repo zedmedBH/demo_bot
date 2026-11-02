@@ -34,6 +34,7 @@ ControllerSettings angular_controller(2, 0, 10, 3, 1, 100, 3, 500, 0);
 // --- Initialize Chassis ---
 Chassis chassis(drivetrain, lateral_controller, angular_controller, sensors);
 
+AIVision ai_vision(20);
 
 /**
  * A callback function for LLEMU's center button.
@@ -66,6 +67,8 @@ void initialize() {
 
     // Calibrate the chassis (calibrates the IMU and starts odometry)
     chassis.calibrate();
+    
+    ai_vision.enable_detection_types(pros::AivisionModeType::tags);
 
 }
 
@@ -94,10 +97,36 @@ void opcontrol() {
     const double LIFT_MAX_POS = 3000.0;
     const double TRAY_MAX_POS = 1750.0;
 
+    const double kP = 0.5;
+    const int CENTER_FOV_X = 160;
+
     while (true) {
 
+        auto objects  = ai_vision.get_all_objects();
+        bool found_tag = false;
+        double target_x = 0;
+
+        if (objects.size() == 0){
+            pros::lcd::set_text(1, "No AprilTags detected!");
+        } else {
+            for (auto &obj : objects){
+                // Using counter-clockwise mapping
+                double x0 = obj.object.tag.x0; // Bottom-left
+                double x1 = obj.object.tag.x1; // Bottom-right
+
+                target_x = (x0 + x1)/2.0;
+
+                pros::lcd::print(1, "ID:%d CenterX:%.1f",
+                    obj.id,
+                    target_x
+                );
+                found_tag = true;
+                break;
+            }
+        }
+
         // --- Manual Drive Logic ---
-        int throttle = master.get_analog(ANALOG_LEFT_Y);
+/*        int throttle = master.get_analog(ANALOG_LEFT_Y);
         int turn = master.get_analog(ANALOG_RIGHT_X);
 
         chassis.curvature(throttle, turn);
@@ -139,7 +168,7 @@ void opcontrol() {
         }else{
             trayLiftMotor.brake();
         }
-
-        delay(10); 
+*/
+        pros::delay(100); 
     }
 }
